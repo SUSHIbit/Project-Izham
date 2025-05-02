@@ -5,12 +5,14 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 
-export default function Edit({ auth, enemy }) {
+export default function Edit({ auth, enemy, levelGroups }) {
     const { data, setData, post, processing, errors } = useForm({
         name: enemy.name || "",
         hp: enemy.hp || "",
-        attack: enemy.attack || "",
+        attack_min: enemy.attack_min || "",
+        attack_max: enemy.attack_max || "",
         defense: enemy.defense || "",
+        level_group: enemy.level_group || "1",
         image: null,
         _method: "put",
     });
@@ -95,27 +97,58 @@ export default function Edit({ auth, enemy }) {
                                     />
                                 </div>
 
-                                <div className="mb-4">
-                                    <InputLabel
-                                        htmlFor="attack"
-                                        value="Attack"
-                                    />
-                                    <TextInput
-                                        id="attack"
-                                        type="number"
-                                        name="attack"
-                                        value={data.attack}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData("attack", e.target.value)
-                                        }
-                                        required
-                                        min="1"
-                                    />
-                                    <InputError
-                                        message={errors.attack}
-                                        className="mt-2"
-                                    />
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="attack_min"
+                                            value="Min Attack"
+                                        />
+                                        <TextInput
+                                            id="attack_min"
+                                            type="number"
+                                            name="attack_min"
+                                            value={data.attack_min}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) =>
+                                                setData(
+                                                    "attack_min",
+                                                    e.target.value
+                                                )
+                                            }
+                                            required
+                                            min="1"
+                                        />
+                                        <InputError
+                                            message={errors.attack_min}
+                                            className="mt-2"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="attack_max"
+                                            value="Max Attack"
+                                        />
+                                        <TextInput
+                                            id="attack_max"
+                                            type="number"
+                                            name="attack_max"
+                                            value={data.attack_max}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) =>
+                                                setData(
+                                                    "attack_max",
+                                                    e.target.value
+                                                )
+                                            }
+                                            required
+                                            min="1"
+                                        />
+                                        <InputError
+                                            message={errors.attack_max}
+                                            className="mt-2"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="mb-4">
@@ -137,6 +170,41 @@ export default function Edit({ auth, enemy }) {
                                     />
                                     <InputError
                                         message={errors.defense}
+                                        className="mt-2"
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <InputLabel
+                                        htmlFor="level_group"
+                                        value="Level Group"
+                                    />
+                                    <select
+                                        id="level_group"
+                                        name="level_group"
+                                        value={data.level_group}
+                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        onChange={(e) =>
+                                            setData(
+                                                "level_group",
+                                                e.target.value
+                                            )
+                                        }
+                                        required
+                                    >
+                                        {Object.entries(levelGroups).map(
+                                            ([value, label]) => (
+                                                <option
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </option>
+                                            )
+                                        )}
+                                    </select>
+                                    <InputError
+                                        message={errors.level_group}
                                         className="mt-2"
                                     />
                                 </div>

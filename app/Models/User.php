@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'max_level_reached',
     ];
 
     /**
@@ -51,5 +52,29 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Get the player profile associated with the user.
+     */
+    public function playerProfile()
+    {
+        return $this->hasOne(PlayerProfile::class);
+    }
+    
+    /**
+     * Get the battle logs for the user.
+     */
+    public function battleLogs()
+    {
+        return $this->hasMany(BattleLog::class);
+    }
+    
+    /**
+     * Get the level upgrades for the user.
+     */
+    public function levelUpgrades()
+    {
+        return $this->hasMany(LevelUpgrade::class);
     }
 }

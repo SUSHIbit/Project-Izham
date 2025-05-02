@@ -1,41 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
+import { Head, Link } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 
-export default function Create({ auth }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: "",
-        hp: "",
-        attack: "",
-        defense: "",
-        image: null,
-    });
-
-    const [imagePreview, setImagePreview] = useState(null);
-
-    function handleSubmit(e) {
-        e.preventDefault();
-        post(route("admin.enemies.store"), {
-            preserveScroll: true,
-            onSuccess: () => reset(),
-        });
-    }
-
-    function handleImageChange(e) {
-        const file = e.target.files[0];
-        setData("image", file);
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setImagePreview(null);
+export default function Index({ auth, enemiesByGroup, levelGroups }) {
+    function deleteEnemy(id) {
+        if (confirm("Are you sure you want to delete this enemy?")) {
+            router.delete(route("admin.enemies.destroy", id));
         }
     }
 
@@ -44,150 +15,146 @@ export default function Create({ auth }) {
             user={auth.user}
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Create Enemy
+                    Manage Enemies
                 </h2>
             }
         >
-            <Head title="Create Enemy" />
+            <Head title="Manage Enemies" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <form
-                                onSubmit={handleSubmit}
-                                className="max-w-md mx-auto"
-                            >
-                                <div className="mb-4">
-                                    <InputLabel htmlFor="name" value="Name" />
-                                    <TextInput
-                                        id="name"
-                                        type="text"
-                                        name="name"
-                                        value={data.name}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData("name", e.target.value)
-                                        }
-                                        required
-                                    />
-                                    <InputError
-                                        message={errors.name}
-                                        className="mt-2"
-                                    />
-                                </div>
+                            <div className="flex justify-between mb-6">
+                                <h3 className="text-lg font-semibold">
+                                    Enemy Management
+                                </h3>
+                                <Link
+                                    href={route("admin.enemies.create")}
+                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
+                                >
+                                    Create New Enemy
+                                </Link>
+                            </div>
 
-                                <div className="mb-4">
-                                    <InputLabel htmlFor="hp" value="HP" />
-                                    <TextInput
-                                        id="hp"
-                                        type="number"
-                                        name="hp"
-                                        value={data.hp}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData("hp", e.target.value)
-                                        }
-                                        required
-                                        min="1"
-                                    />
-                                    <InputError
-                                        message={errors.hp}
-                                        className="mt-2"
-                                    />
+                            {Object.keys(enemiesByGroup).length > 0 ? (
+                                <div>
+                                    {Object.keys(enemiesByGroup)
+                                        .sort((a, b) => a - b)
+                                        .map((levelGroup) => (
+                                            <div
+                                                key={levelGroup}
+                                                className="mb-10"
+                                            >
+                                                <h4 className="text-md font-semibold bg-gray-100 p-2 rounded-t-lg">
+                                                    {levelGroups[levelGroup] ||
+                                                        `Level Group ${levelGroup}`}
+                                                </h4>
+                                                <div className="overflow-x-auto border border-gray-200 rounded-b-lg">
+                                                    <table className="min-w-full bg-white">
+                                                        <thead>
+                                                            <tr className="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
+                                                                <th className="py-3 px-4 text-left">
+                                                                    Name
+                                                                </th>
+                                                                <th className="py-3 px-4 text-left">
+                                                                    HP
+                                                                </th>
+                                                                <th className="py-3 px-4 text-left">
+                                                                    Attack
+                                                                </th>
+                                                                <th className="py-3 px-4 text-left">
+                                                                    Defense
+                                                                </th>
+                                                                <th className="py-3 px-4 text-left">
+                                                                    Image
+                                                                </th>
+                                                                <th className="py-3 px-4 text-left">
+                                                                    Actions
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="text-gray-600 text-sm">
+                                                            {enemiesByGroup[
+                                                                levelGroup
+                                                            ].map((enemy) => (
+                                                                <tr
+                                                                    key={
+                                                                        enemy.id
+                                                                    }
+                                                                    className="border-t border-gray-200 hover:bg-gray-50"
+                                                                >
+                                                                    <td className="py-3 px-4">
+                                                                        {
+                                                                            enemy.name
+                                                                        }
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        {
+                                                                            enemy.hp
+                                                                        }
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        {
+                                                                            enemy.attack_min
+                                                                        }{" "}
+                                                                        -{" "}
+                                                                        {
+                                                                            enemy.attack_max
+                                                                        }
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        {
+                                                                            enemy.defense
+                                                                        }
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        {enemy.image_path && (
+                                                                            <img
+                                                                                src={`/storage/${enemy.image_path}`}
+                                                                                alt={
+                                                                                    enemy.name
+                                                                                }
+                                                                                className="w-12 h-12 object-cover rounded"
+                                                                            />
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        <div className="flex space-x-2">
+                                                                            <Link
+                                                                                href={route(
+                                                                                    "admin.enemies.edit",
+                                                                                    enemy.id
+                                                                                )}
+                                                                                className="px-3 py-1 bg-yellow-500 hover:bg-yellow-700 text-white rounded text-xs"
+                                                                            >
+                                                                                Edit
+                                                                            </Link>
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    deleteEnemy(
+                                                                                        enemy.id
+                                                                                    )
+                                                                                }
+                                                                                className="px-3 py-1 bg-red-500 hover:bg-red-700 text-white rounded text-xs"
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        ))}
                                 </div>
-
-                                <div className="mb-4">
-                                    <InputLabel
-                                        htmlFor="attack"
-                                        value="Attack"
-                                    />
-                                    <TextInput
-                                        id="attack"
-                                        type="number"
-                                        name="attack"
-                                        value={data.attack}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData("attack", e.target.value)
-                                        }
-                                        required
-                                        min="1"
-                                    />
-                                    <InputError
-                                        message={errors.attack}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <InputLabel
-                                        htmlFor="defense"
-                                        value="Defense"
-                                    />
-                                    <TextInput
-                                        id="defense"
-                                        type="number"
-                                        name="defense"
-                                        value={data.defense}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) =>
-                                            setData("defense", e.target.value)
-                                        }
-                                        required
-                                        min="0"
-                                    />
-                                    <InputError
-                                        message={errors.defense}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <InputLabel
-                                        htmlFor="image"
-                                        value="Image (Optional)"
-                                    />
-                                    <input
-                                        id="image"
-                                        type="file"
-                                        name="image"
-                                        className="mt-1 block w-full"
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                    />
-                                    <InputError
-                                        message={errors.image}
-                                        className="mt-2"
-                                    />
-
-                                    {imagePreview && (
-                                        <div className="mt-2">
-                                            <img
-                                                src={imagePreview}
-                                                alt="Preview"
-                                                className="w-32 h-32 object-cover rounded"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-between mt-6">
-                                    <Link
-                                        href={route("admin.enemies.index")}
-                                        className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
-                                    >
-                                        Cancel
-                                    </Link>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
-                                        disabled={processing}
-                                    >
-                                        Create Enemy
-                                    </button>
-                                </div>
-                            </form>
+                            ) : (
+                                <p className="bg-gray-50 p-4 rounded text-center">
+                                    No enemies found. Create your first enemy!
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

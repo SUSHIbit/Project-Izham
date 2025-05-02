@@ -12,8 +12,10 @@ class Enemy extends Model
     protected $fillable = [
         'name',
         'hp',
-        'attack',
+        'attack_min',
+        'attack_max',
         'defense',
+        'level_group',
         'image_path',
     ];
 }
