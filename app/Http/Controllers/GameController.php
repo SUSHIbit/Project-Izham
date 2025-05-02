@@ -7,6 +7,7 @@ use App\Models\BattleLog;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log; // Add this import
 use Inertia\Inertia;
 
 class GameController extends Controller
@@ -36,11 +37,15 @@ class GameController extends Controller
         $levelGroup = $this->getLevelGroupForLevel($playerLevel);
         
         // Log for debugging
-        \Log::info("Getting enemy for player level: $playerLevel, level group: $levelGroup");
+        Log::info("Getting enemy for player level: $playerLevel, level group: $levelGroup");
+        
+        // Count total enemies for debugging
+        $totalEnemies = Enemy::count();
+        Log::info("Total enemies in database: $totalEnemies");
         
         // Count enemies in this group for debugging
         $enemyCount = Enemy::where('level_group', $levelGroup)->count();
-        \Log::info("Found $enemyCount enemies in level group $levelGroup");
+        Log::info("Found $enemyCount enemies in level group $levelGroup");
         
         // Get a random enemy from this level group
         $enemy = Enemy::where('level_group', $levelGroup)
@@ -48,9 +53,14 @@ class GameController extends Controller
             ->first();
         
         if (!$enemy) {
-            \Log::error("No enemy found for level group $levelGroup");
+            Log::error("No enemy found for level group $levelGroup, trying any enemy");
             // Fallback if no enemies found in this level group
             $enemy = Enemy::inRandomOrder()->first();
+            
+            if (!$enemy) {
+                Log::error("No enemies found at all in the database");
+                return response()->json(['error' => 'No enemies available in database'], 404);
+            }
         }
         
         // Clone the enemy data to avoid modifying the database record
@@ -90,7 +100,7 @@ class GameController extends Controller
             'level_reached' => $playerProfile->current_level,
             'enemies_defeated' => 0,
             'started_at' => Carbon::now(),
-            'ended_at' => null,
+            'ended_at' => null, // This is causing the error
         ]);
         
         // Set up session
@@ -280,37 +290,51 @@ class GameController extends Controller
      * Process battle victory - update stats and check for level up.
      */
     private function processBattleVictory()
-    {
-        $user = auth()->user();
-        $playerProfile = $user->playerProfile;
-        
-        if (!$playerProfile) {
-            return;
-        }
-        
-        // Record enemy defeated
-        $battleLogId = session('battle_id');
-        if ($battleLogId) {
-            $battleLog = BattleLog::find($battleLogId);
-            if ($battleLog) {
-                $battleLog->enemies_defeated += 1;
-                $battleLog->save();
-            }
-        }
-        
-        // Check if we need to level up
-        if ($this->shouldLevelUp($playerProfile->current_level)) {
-            $playerProfile->current_level += 1;
-            
-            // Update max level reached if needed
-            if ($playerProfile->current_level > $user->max_level_reached) {
-                $user->max_level_reached = $playerProfile->current_level;
-                $user->save();
-            }
-            
-            $playerProfile->save();
+{
+    $user = auth()->user();
+    
+    // Add a check to make sure $user is valid
+    if (!$user) {
+        Log::error("No authenticated user found in processBattleVictory");
+        return;
+    }
+    
+    $playerProfile = $user->playerProfile;
+    
+    if (!$playerProfile) {
+        Log::error("No player profile found for user ID: " . $user->id);
+        return;
+    }
+    
+    // Record enemy defeated
+    $battleLogId = session('battle_id');
+    if ($battleLogId) {
+        $battleLog = BattleLog::find($battleLogId);
+        if ($battleLog) {
+            $battleLog->enemies_defeated += 1;
+            $battleLog->save();
         }
     }
+    
+    // Check if we need to level up
+    if ($this->shouldLevelUp($playerProfile->current_level)) {
+        $playerProfile->current_level += 1;
+        
+        // Update max level reached if needed
+        if ($playerProfile->current_level > $user->max_level_reached) {
+            // Use query builder to update directly
+            try {
+                User::where('id', $user->id)->update([
+                    'max_level_reached' => $playerProfile->current_level
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Error updating user max level: " . $e->getMessage());
+            }
+        }
+        
+        $playerProfile->save();
+    }
+}
 
     /**
      * Process battle defeat - end battle log

@@ -60,33 +60,26 @@ export default function Game({ auth, player, level, battleState }) {
 
     const performAction = async (action) => {
         if (gameOver || loading) return;
-
+    
         try {
             setLoading(true);
             const response = await axios.post("/api/battle/action", {
                 action,
-                player: currentPlayer,
-                enemy: enemy,
-                battleState: currentBattleState,
+                player,
+                enemy,
+                battleState,
             });
-
-            setCurrentPlayer(response.data.player);
+    
+            setPlayer(response.data.player);
             setEnemy(response.data.enemy);
-            setCurrentBattleState(response.data.battleState);
+            setBattleState(response.data.battleState);
             setMessage(response.data.message);
-
+    
             if (response.data.gameOver) {
                 setGameOver(true);
                 setVictory(response.data.victory);
-
-                if (response.data.victory) {
-                    setEnemiesDefeated((prev) => prev + 1);
-                    if (response.data.levelUp) {
-                        setShowLevelUp(true);
-                    }
-                }
             }
-
+    
             setLoading(false);
         } catch (error) {
             console.error("Error processing action:", error);
@@ -94,7 +87,7 @@ export default function Game({ auth, player, level, battleState }) {
             setLoading(false);
         }
     };
-
+    
     const handleLevelUp = async (stat) => {
         try {
             await axios.post("/api/game/level-up", { stat });

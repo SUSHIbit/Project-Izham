@@ -67,7 +67,7 @@ export default function Home({ canLogin, canRegister }) {
                     </p>
                     
                     <Link
-                        href={canLogin ? route('login') : route('dashboard')}
+                        href={route(canLogin ? 'login' : 'dashboard')}
                         className="px-8 py-4 bg-red-700 hover:bg-red-600 text-white text-xl font-bold rounded-lg transition transform hover:scale-105 hover:shadow-lg"
                     >
                         Play Game
