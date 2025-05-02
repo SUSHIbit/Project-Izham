@@ -22,6 +22,10 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/dashboard', [GameController::class, 'dashboard'])
+    ->middleware(['auth'])
+    ->name('dashboard');
+
 // Leaderboard (public)
 Route::get('/leaderboard', [PlayerProfileController::class, 'leaderboard'])
     ->name('leaderboard');

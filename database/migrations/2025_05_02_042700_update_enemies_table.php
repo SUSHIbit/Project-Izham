@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::table('enemies', function (Blueprint $table) {
             // Drop existing columns
             $table->dropColumn(['attack', 'defense']);
-            
+        });
+        
+        // Create a separate operation to add the new columns
+        Schema::table('enemies', function (Blueprint $table) {
             // Add new columns
             $table->integer('attack_min')->default(5);
             $table->integer('attack_max')->default(10);
