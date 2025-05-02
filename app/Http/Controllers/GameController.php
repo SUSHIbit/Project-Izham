@@ -13,7 +13,7 @@ class GameController extends Controller
      */
     public function dashboard()
     {
-        return Inertia::render('Game/Dashboard');
+        return Inertia::render('Dashboard');
     }
 
     /**
