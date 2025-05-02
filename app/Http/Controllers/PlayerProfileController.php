@@ -70,10 +70,14 @@ class PlayerProfileController extends Controller
             return redirect()->back()->with('error', 'Please create a character name first!');
         }
         
+        // Reset the level to 1 whenever starting a new game
+        $playerProfile->current_level = 1;
+        $playerProfile->save();
+        
         // Redirect to the game view
         return Inertia::render('Game', [
             'player' => $playerProfile,
-            'level' => $playerProfile->current_level,
+            'level' => $playerProfile->current_level, // This will now be 1
             'battleState' => [
                 'isDefending' => false,
                 'skillUses' => 3,

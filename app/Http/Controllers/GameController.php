@@ -31,9 +31,16 @@ class GameController extends Controller
     public function getRandomEnemy(Request $request)
     {
         $playerLevel = $request->level ?? 1;
-        
+    
         // Determine level group
         $levelGroup = $this->getLevelGroupForLevel($playerLevel);
+        
+        // Log for debugging
+        \Log::info("Getting enemy for player level: $playerLevel, level group: $levelGroup");
+        
+        // Count enemies in this group for debugging
+        $enemyCount = Enemy::where('level_group', $levelGroup)->count();
+        \Log::info("Found $enemyCount enemies in level group $levelGroup");
         
         // Get a random enemy from this level group
         $enemy = Enemy::where('level_group', $levelGroup)
@@ -41,12 +48,9 @@ class GameController extends Controller
             ->first();
         
         if (!$enemy) {
+            \Log::error("No enemy found for level group $levelGroup");
             // Fallback if no enemies found in this level group
             $enemy = Enemy::inRandomOrder()->first();
-        }
-        
-        if (!$enemy) {
-            return response()->json(['error' => 'No enemies found'], 404);
         }
         
         // Clone the enemy data to avoid modifying the database record
